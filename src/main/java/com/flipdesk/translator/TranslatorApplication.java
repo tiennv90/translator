@@ -9,19 +9,19 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+
 @SpringBootApplication
 @EnableSwagger2
-@ComponentScan("com.flipdesk.translator.controller") 
+@ComponentScan("com.flipdesk.translator.controller")
 public class TranslatorApplication {
-	
-	
 
-    public static void main(String[] args) {
-        SpringApplication.run(TranslatorApplication.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(TranslatorApplication.class, args);
+	}
 
-    @Bean
-    public Docket translatorApi() {
-    	return new Docket(DocumentationType.SWAGGER_2).select().build();
-    }
+	@Bean
+	public Docket translatorApi() {
+		return new Docket(DocumentationType.SWAGGER_2).select().build();
+	}
+
 }
