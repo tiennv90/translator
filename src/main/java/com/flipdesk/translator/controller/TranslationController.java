@@ -3,8 +3,11 @@ package com.flipdesk.translator.controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-public class TranslationController extends BaseController {
+@RestController
+@RequestMapping("/api/1.0")
+public class TranslationController {
 
 	@RequestMapping(value = "/projects/{projectslug}/{documentslug}", method = RequestMethod.POST)
 	public String addTranslation(

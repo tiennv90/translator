@@ -3,13 +3,16 @@ package com.flipdesk.translator.controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-public class DocumentController extends BaseController {
+@RestController
+@RequestMapping(value="/api/1.0")
+public class DocumentController {
 
 	@RequestMapping(value="/projects/{projectslug}/documents", method=RequestMethod.GET)
 	public String getAllDocuments(@PathVariable("projectslug") String projectSlug) {
 		
-		return "";
+		return "test controller";
 		
 	}
 	
