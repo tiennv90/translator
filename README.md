@@ -13,3 +13,8 @@ A translator application that i build with:
 
 * SpringFox (https://github.com/springfox/springfox) for documentation.
 
+============
+
+## Maven build:
+
+> mvn clean  package && java -jar target/translator-1.0.0.jar
