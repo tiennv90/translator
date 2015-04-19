@@ -22,6 +22,14 @@
 		<start-class>com.flipdesk.translator.TranslatorApplication</start-class>
 		<java.version>1.7</java.version>
 	</properties>
+	
+	<repositories>
+	    <repository>
+	      <id>jcenter-snapshots</id>
+	      <name>jcenter</name>
+	      <url>http://oss.jfrog.org/artifactory/oss-snapshot-local/</url>
+	    </repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -53,6 +61,35 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		<!-- Begin SpringFox libraries-->
+		<dependency>
+		    <groupId>io.springfox</groupId>
+		    <artifactId>springfox-core</artifactId>
+		    <version>2.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+		    <groupId>io.springfox</groupId>
+		    <artifactId>springfox-spi</artifactId>
+		    <version>2.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+		    <groupId>io.springfox</groupId>
+		    <artifactId>springfox-spring-web</artifactId>
+		    <version>2.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+		    <groupId>io.springfox</groupId>
+		    <artifactId>springfox-swagger2</artifactId>
+		    <version>2.0.0-SNAPSHOT</version>
+		</dependency>
+		<!-- for swagger 1.2 optionally -->
+		<dependency>
+		    <groupId>io.springfox</groupId>
+		    <artifactId>springfox-swagger1</artifactId>
+		    <version>2.0.0-SNAPSHOT</version>
+		</dependency>				
+		<!-- End SpringFox libraries -->
 	</dependencies>
 	
 	<build>
