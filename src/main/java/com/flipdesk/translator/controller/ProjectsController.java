@@ -10,21 +10,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class ProjectsController extends BaseController {
 	
 
-	@RequestMapping(method=RequestMethod.GET)
+	@RequestMapping(value="/projects", method=RequestMethod.GET)
 	public String index(HttpServletRequest request) {
 		
 		return "";
 		
 	}
 	
-	@RequestMapping(value="/{projectslug}", method=RequestMethod.GET)
+	@RequestMapping(value="/projects/{projectslug}", method=RequestMethod.GET)
 	public String getProject(@PathVariable("projectslug") String projectslug, HttpServletRequest request) {
 		
 		return "";
 		
 	}
 	
-	@RequestMapping(value="/{projectslug}", method=RequestMethod.DELETE)
+	@RequestMapping(value="/projects/{projectslug}", method=RequestMethod.DELETE)
 	public String deleteProject(@PathVariable("projectslug") String projectslug) {
 		
 		return "";
@@ -32,7 +32,7 @@ public class ProjectsController extends BaseController {
 	}
 	
 	
-	@RequestMapping(value="/", method=RequestMethod.POST)
+	@RequestMapping(value="/projects/", method=RequestMethod.POST)
 	public String updateProject(HttpServletRequest request) {
 		
 		return "";

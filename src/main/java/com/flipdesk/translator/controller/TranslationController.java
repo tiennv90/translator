@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 public class TranslationController extends BaseController {
 
-	@RequestMapping(value = "/{projectslug}/{documentslug}", method = RequestMethod.POST)
+	@RequestMapping(value = "/projects/{projectslug}/{documentslug}", method = RequestMethod.POST)
 	public String addTranslation(
 			@PathVariable("projectslug") String projectSlug,
 			@PathVariable("documentslug") String documentSlug) {
@@ -15,7 +15,7 @@ public class TranslationController extends BaseController {
 
 	}
 
-	@RequestMapping(value = "/{projectslug}/{documentslug}/{localeCode}/strings", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/projects/{projectslug}/{documentslug}/{localeCode}/strings", method = RequestMethod.DELETE)
 	public String deleteRecordsByLocale(
 			@PathVariable("projectslug") String projectSlug,
 			@PathVariable("documentslug") String documentSlug,
@@ -25,7 +25,7 @@ public class TranslationController extends BaseController {
 
 	}
 	
-	@RequestMapping(value = "/{projectslug}/{documentslug}/{localeCode}/strings", method = RequestMethod.POST)
+	@RequestMapping(value = "/projects/{projectslug}/{documentslug}/{localeCode}/strings", method = RequestMethod.POST)
 	public String updateRecordsByLocale(
 			@PathVariable("projectslug") String projectSlug,
 			@PathVariable("documentslug") String documentSlug,
@@ -35,7 +35,7 @@ public class TranslationController extends BaseController {
 
 	}
 	
-	@RequestMapping(value = "/{projectslug}/{documentslug}/{export_format}/{locale}", method = RequestMethod.GET)
+	@RequestMapping(value = "/projects/{projectslug}/{documentslug}/{export_format}/{locale}", method = RequestMethod.GET)
 	public String exportStringByFormatAndLocale(
 			@PathVariable("projectslug") String projectSlug,
 			@PathVariable("documentslug") String documentSlug,
@@ -46,8 +46,9 @@ public class TranslationController extends BaseController {
 
 	}	
 	
-	@RequestMapping(value = "/auth/{appkey}/{projectslug}/{documentslug}/{export_format}/{locale}", method = RequestMethod.GET)
+	@RequestMapping(value = "/auth/{appkey}projects/{projectslug}/{documentslug}/{export_format}/{locale}", method = RequestMethod.GET)
 	public String authenticationExportStringByFormatAndLocale(
+			@PathVariable("appkey") String appKey,
 			@PathVariable("projectslug") String projectSlug,
 			@PathVariable("documentslug") String documentSlug,
 			@PathVariable("export_format") String exportFormat,
