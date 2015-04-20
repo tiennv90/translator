@@ -1,4 +1,4 @@
-package com.flipdesk.translator;
+package com.flipmind.localizationservice;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;

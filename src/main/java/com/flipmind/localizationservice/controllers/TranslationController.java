@@ -1,4 +1,4 @@
-package com.flipdesk.translator.controller;
+package com.flipmind.localizationservice.controllers;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

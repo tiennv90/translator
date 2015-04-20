@@ -1,4 +1,4 @@
-package com.flipdesk.translator;
+package com.flipmind.localizationservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,7 +12,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @EnableSwagger2
-@ComponentScan("com.flipdesk.translator.controller")
+@ComponentScan("com.flipmind.localizationservice.controllers")
 public class TranslatorApplication {
 
 	public static void main(String[] args) {

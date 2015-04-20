@@ -1,4 +1,4 @@
-package com.flipdesk.translator.controller;
+package com.flipmind.localizationservice.controllers;
 
 import javax.servlet.http.HttpServletRequest;
 
