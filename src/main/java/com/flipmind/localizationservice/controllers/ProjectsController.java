@@ -31,7 +31,7 @@ public class ProjectsController {
 	)	
 	public String index() {
 		
-		return "";
+		return "test project";
 		
 	}
 	

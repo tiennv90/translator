@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
 import com.flipmind.localizationservice.controllers.DocumentController;
 import com.flipmind.localizationservice.controllers.ProjectsController;
@@ -41,6 +42,15 @@ public class TranslatorApplication {
 				"1.0", "", "", "@flipmind", "");
 		return apiInfo;
 
+	}
+	
+	
+	@Bean
+	public ReloadableResourceBundleMessageSource messageResource() {
+		ReloadableResourceBundleMessageSource resource = new ReloadableResourceBundleMessageSource();
+		resource.setBasename("classpath:messages");
+		resource.setCacheSeconds(1);
+		return resource;
 	}
 
 }
