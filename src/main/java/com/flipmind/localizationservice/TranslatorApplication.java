@@ -3,12 +3,7 @@ package com.flipmind.localizationservice;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-
-import com.flipmind.localizationservice.controllers.DocumentController;
-import com.flipmind.localizationservice.controllers.ProjectsController;
-import com.flipmind.localizationservice.controllers.TranslationController;
 
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
@@ -17,12 +12,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @EnableSwagger2
-@ComponentScan(basePackageClasses = {
-        ProjectsController.class,
-        DocumentController.class,
-        TranslationController.class
-
-})
 public class TranslatorApplication {
 
 	public static void main(String[] args) {

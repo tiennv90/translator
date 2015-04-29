@@ -14,7 +14,7 @@ import com.wordnik.swagger.models.Response;
 
 @RestController
 @RequestMapping("/api/1.0")
-@Api(value = "Translation", description = "Mange translations")
+@Api(value = "Translation", description = "Manage translations")
 public class TranslationController {
 
 	@RequestMapping(value = "/projects/{projectslug}/{documentslug}", method = RequestMethod.POST)
