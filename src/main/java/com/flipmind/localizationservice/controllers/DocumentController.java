@@ -88,7 +88,9 @@ public class DocumentController {
 			httpMethod = "POST", notes = "Accepts a JSON document and creates/updates the document for the tenant", 
 			response = Response.class
 	)	
-	public String createDocument() {
+	public String createDocument(			
+			@ApiParam(value = "Project Slug",  required = true)
+			@PathVariable("projectslug") String projectSlug) {
 		return "";
 	}
 		

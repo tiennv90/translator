@@ -41,6 +41,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 		
 		if (isAuthentication == false) {
 			request.getRequestDispatcher("/noauthentication").forward(request, response);
+		} else {
+			request.getRequestDispatcher(request.getRequestURI()).forward(request, response);
 		}
 	}
 

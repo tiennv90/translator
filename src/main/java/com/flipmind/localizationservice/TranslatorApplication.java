@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
+import com.mangofactory.swagger.models.dto.ApiKey;
+
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
@@ -33,6 +35,10 @@ public class TranslatorApplication {
 
 	}
 	
+	@Bean
+	public ApiKey apiKey() {
+		return new ApiKey("api_key", "header");
+	}
 	
 	@Bean
 	public ReloadableResourceBundleMessageSource messageResource() {
@@ -41,5 +47,6 @@ public class TranslatorApplication {
 		resource.setCacheSeconds(1);
 		return resource;
 	}
-
+	
+	
 }
