@@ -27,7 +27,7 @@ public class Project extends AbstractTimestampEntity {
 	private String title;
 
 	@ManyToOne
-	@JoinColumn(name = "tenant_id", insertable = false, updatable = false, nullable = false)
+	@JoinColumn(name = "tenant_id", nullable = false)
 	private Tenant tenant;
 	
 	@OneToMany(mappedBy = "project")
@@ -55,6 +55,22 @@ public class Project extends AbstractTimestampEntity {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public Tenant getTenant() {
+		return tenant;
+	}
+
+	public void setTenant(Tenant tenant) {
+		this.tenant = tenant;
+	}
+
+	public List<Document> getDocuments() {
+		return documents;
+	}
+
+	public void setDocuments(List<Document> documents) {
+		this.documents = documents;
 	}
 
 }

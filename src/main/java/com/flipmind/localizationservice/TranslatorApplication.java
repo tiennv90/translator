@@ -1,10 +1,14 @@
 package com.flipmind.localizationservice;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
+import com.flipmind.localizationservice.repositories.ProjectRepository;
+import com.flipmind.localizationservice.repositories.TenantRepository;
 import com.mangofactory.swagger.models.dto.ApiKey;
 
 import springfox.documentation.service.ApiInfo;
@@ -14,8 +18,14 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @EnableSwagger2
-public class TranslatorApplication {
+public class TranslatorApplication implements CommandLineRunner {
 
+	@Autowired
+	private TenantRepository tenantRepository;
+	
+	@Autowired
+	private ProjectRepository projectRepository;
+	
 	public static void main(String[] args) {
 		SpringApplication.run(TranslatorApplication.class, args);
 	}
@@ -26,6 +36,7 @@ public class TranslatorApplication {
 				.select().build();
 	}
 
+	
 	private ApiInfo apiInfo() {
 		ApiInfo apiInfo = new ApiInfo(
 				"Localization Service",
@@ -46,6 +57,25 @@ public class TranslatorApplication {
 		resource.setBasename("classpath:messages");
 		resource.setCacheSeconds(1);
 		return resource;
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+		
+//		Tenant tenant = new Tenant();
+//		tenant.setApiKey("aaa");
+//		tenant.setName("Flip Mind");
+//		tenant.setUserName("admin");
+//		tenant.setPassword("password");
+//		
+//		tenant = tenantRepository.save(tenant);
+//		
+//		Project p = new Project();
+//		p.setSlug("project1");
+//		p.setTitle("My First Project");
+//		p.setTenant(tenant);
+//		
+//		projectRepository.save(p);
 	}
 	
 	
