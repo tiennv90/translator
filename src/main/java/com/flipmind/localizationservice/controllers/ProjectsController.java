@@ -86,6 +86,7 @@ public class ProjectsController {
 	}
 	
 	@RequestMapping(value="/projects/{projectslug}", method=RequestMethod.GET)
+	@ResponseBody
 	@ApiResponses(
 			value = {@ApiResponse(code = 404, message = "Something went wrong")
 	})
@@ -125,6 +126,7 @@ public class ProjectsController {
 	}
 	
 	@RequestMapping(value="/projects/{projectslug}", method=RequestMethod.DELETE)
+	@ResponseBody
 	@ApiResponses(
 			value = {@ApiResponse(code = 404, message = "Something went wrong")
 	})
@@ -183,6 +185,7 @@ public class ProjectsController {
 	
 	
 	@RequestMapping(value="/projects", method=RequestMethod.POST)
+	@ResponseBody
 	@ApiResponses(
 			value = {@ApiResponse(code = 404, message = "Something went wrong")
 	})
@@ -196,7 +199,10 @@ public class ProjectsController {
 		try {
 			JSONMessage message = new JSONMessage();
 			message.setMessage("Creates/updates project");
+			
 			if (project != null) {
+				
+				boolean isCreateProject = false;
 				
 				Project actualProject = projectRepository.findOne(project.getId());
 				if (actualProject != null) {
@@ -205,14 +211,21 @@ public class ProjectsController {
 					actualProject.setTitle(project.getTitle());
 					
 					projectRepository.save(actualProject);
-				} else {
+				} else if (project.getTenant() != null && project.getTenant().getId() > 0){
+					
+					Tenant tenant = tenantRepository.findOne(project.getTenant().getId());
+					project.setTenant(tenant);
 					projectRepository.save(project);
+					
+					isCreateProject =true;
 				}
 				
-				if (project.getId() > 0) {
+				if (isCreateProject) {
 					message.getItems().add("Project: " + project.getSlug() + " was created successfully");
-				} else {
+				} else if (project.getId() > 0) {
 					message.getItems().add("Project: " + project.getSlug() + " was updated successfully");
+				} else {
+					message.getItems().add("Project: " + project.getSlug() + " Can not be created. The tenant ID is missing");
 				}
 				
 				HttpHeaders headers = new HttpHeaders();

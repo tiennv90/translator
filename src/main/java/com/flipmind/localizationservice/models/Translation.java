@@ -4,6 +4,8 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -26,6 +28,7 @@ public class Translation extends AbstractTimestampEntity {
 	private Date publishedDate;
 
 	@Column(nullable = false)
+	@Enumerated(EnumType.ORDINAL)
 	private Status status;
 
 	@Temporal(TemporalType.TIMESTAMP)

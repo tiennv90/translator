@@ -87,5 +87,13 @@ public class Document extends AbstractTimestampEntity {
 	public void setTranslations(List<Translation> translations) {
 		this.translations = translations;
 	}
+
+	public List<DocumentString> getDocumentStrings() {
+		return documentStrings;
+	}
+
+	public void setDocumentStrings(List<DocumentString> documentStrings) {
+		this.documentStrings = documentStrings;
+	}
 	
 }

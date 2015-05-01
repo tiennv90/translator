@@ -32,6 +32,12 @@ public class Project extends AbstractTimestampEntity {
 	
 	@OneToMany(mappedBy = "project")
 	private List<Document> documents;
+	
+	public Project() {}
+	
+	public Project(long id) {
+		this.id = id;
+	}
 
 	public long getId() {
 		return id;
