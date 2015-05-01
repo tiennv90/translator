@@ -1,6 +1,7 @@
 package com.flipmind.localizationservice.models;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,6 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -36,13 +38,17 @@ public class Translation extends AbstractTimestampEntity {
 	private Date activeFromDate;
 
 	@ManyToOne
-	@JoinColumn(name = "document_id", insertable = false, updatable = false, nullable = false)
+	@JoinColumn(name = "document_id")
 	private Document document;
 	
 	@ManyToOne
-	@JoinColumn(name="locale_id", insertable = false, updatable = false, nullable = false)
+	@JoinColumn(name="locale_id")
 	private Locale locale;
 
+	@OneToMany(mappedBy = "translation")
+	private List<TranslatedString> translatedStrings;
+	
+	
 	public long getId() {
 		return id;
 	}
@@ -90,5 +96,12 @@ public class Translation extends AbstractTimestampEntity {
 	public void setLocale(Locale locale) {
 		this.locale = locale;
 	}
-	
+
+	public List<TranslatedString> getTranslatedStrings() {
+		return translatedStrings;
+	}
+
+	public void setTranslatedStrings(List<TranslatedString> translatedStrings) {
+		this.translatedStrings = translatedStrings;
+	}
 }

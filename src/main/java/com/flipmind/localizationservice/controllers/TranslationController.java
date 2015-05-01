@@ -20,16 +20,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.flipmind.localizationservice.GlobalVariable;
 import com.flipmind.localizationservice.models.Document;
-import com.flipmind.localizationservice.models.DocumentString;
 import com.flipmind.localizationservice.models.Locale;
 import com.flipmind.localizationservice.models.Project;
 import com.flipmind.localizationservice.models.Tenant;
+import com.flipmind.localizationservice.models.TranslatedString;
 import com.flipmind.localizationservice.models.Translation;
 import com.flipmind.localizationservice.models.json.JSONMessage;
 import com.flipmind.localizationservice.models.json.JSONTranslation;
 import com.flipmind.localizationservice.repositories.DocumentRepository;
 import com.flipmind.localizationservice.repositories.LocaleRepository;
 import com.flipmind.localizationservice.repositories.TenantRepository;
+import com.flipmind.localizationservice.repositories.TranslatedStringRepository;
 import com.flipmind.localizationservice.repositories.TranslationRepository;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -56,6 +57,9 @@ public class TranslationController {
 
 	@Autowired
 	private LocaleRepository localeRepository;
+	
+	@Autowired
+	private TranslatedStringRepository translatedStringRepository;
 	
 	@RequestMapping(value = "/projects/{projectslug}/{documentslug}", method = RequestMethod.POST)
 	@ApiResponses(
@@ -168,7 +172,7 @@ public class TranslationController {
 			httpMethod = "DELETE", notes = "Accepts a post of [ 'login.login.attempts', ‘otherkey’] And deletes those records within the translatedstring table", 
 			response = Response.class
 	)
-	public String deleteRecordsByLocale(
+	public ResponseEntity<String> deleteRecordsByLocale(
 			@ApiParam(value = "Project Slug",  required = true)
 			@PathVariable("projectslug") String projectSlug,
 			
@@ -176,10 +180,63 @@ public class TranslationController {
 			@PathVariable("documentslug") String documentSlug,
 			
 			@ApiParam(value = "Locale Code",  required = true)
-			@PathVariable("localeCode") String localeCode) {
+			@PathVariable("localeCode") String localeCode,
+			
+			@RequestBody List<String> stringKeys,
+			HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
 
-		return "";
-
+		try {
+			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Content-Type", "application/json; charset=utf-8");
+			HttpStatus httpStatus = HttpStatus.OK;
+			JSONMessage message = new JSONMessage();
+			message.setMessage("Deletes records within the translatedstring table");
+			
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
+			
+			if (tenants != null && !tenants.isEmpty()) {
+				
+				Tenant tenant = tenants.get(0);
+				for (Project project : tenant.getProjects()) {
+					
+					if (project.getSlug().equals(projectSlug)) {
+						for (Document document : project.getDocuments()) {
+							if (document.getSlug().equals(documentSlug)) {
+								List<Translation> translations = document.getTranslations();
+								for (Translation translation : translations) {
+									
+									Locale locale = translation.getLocale();
+									if (locale != null && locale.getLocaleCode() != null && locale.getLocaleCode().equals(localeCode)) {
+										for (TranslatedString translatedString : translation.getTranslatedStrings()) {
+											if (stringKeys.contains(translatedString.getKey())) {
+												translatedStringRepository.delete(translatedString);
+												message.setSuccess(true);
+												message.getItems().add("TranslatedString " + translatedString.getKey() + " was deleted successfully");
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				if (message.isSuccess() == false) {
+					message.getItems().add("Translated strings was not deleted, please recheck path variables");
+				}
+			} else {
+				message.getItems().add("Request does not have authentication");
+				httpStatus = HttpStatus.FORBIDDEN;
+			}
+			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, httpStatus);
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+		}
+		return null;
 	}
 	
 	@RequestMapping(value = "/projects/{projectslug}/{documentslug}/{localeCode}/strings", method = RequestMethod.POST)
