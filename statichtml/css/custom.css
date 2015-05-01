@@ -1,0 +1,210 @@
+/**
+ * RESETS
+ */
+
+body {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 16px;
+    /** background-image: url(../images/bg_5045.png)**/
+}
+/**
+ * HEADER
+ */
+
+#header .logo h1 {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#header .nav {
+    padding-bottom: 30px;
+}
+
+#header .nav>li>a {
+    color: white;
+}
+
+#header .nav>li>a:focus,
+#header .nav>li>a:hover {
+    text-decoration: none;
+    background-color: transparent;
+    color: #b2b2b2;
+}
+/**
+ * NAVBAR
+ */
+
+#navbar.navbar-default {
+    background-color: #FFFFFF;
+    border-bottom-color: #a52222;
+    border-width: 1px 0 5px;
+    border-top-color: rgba(165, 34, 34, .75);
+    font-size: 20px;
+    line-height: 125%;
+    font-weight: normal;
+}
+
+#navbar.navbar-default .navbar-nav > li > a:hover,
+#navbar.navbar-default .navbar-nav > li > a:focus {
+    color: #fff;
+}
+
+#navbar.navbar-default .navbar-nav > .active > a,
+#navbar.navbar-default .navbar-nav > .active > a:hover,
+#navbar.navbar-default .navbar-nav > .active > a:focus {
+    color: #fff;
+    background-color: #a52222;
+}
+/**
+ * Main
+ */
+
+#main {
+    margin-bottom: 50px;
+    font-size: 16px;
+    line-height: 150%;
+}
+
+/*products-list*/
+h2.product-head {
+  border-bottom: 3px solid #a52222;
+  color: #a52222;
+  text-transform: uppercase;
+}
+.products-list .thumbnail .caption h3{
+    margin: 0
+
+}
+
+/**
+ * Sign in
+ */
+
+.sign_in, .creat_account {
+    border: 1px solid gray;
+    border-radius: 5px;
+}
+
+.sign_in h3, .creat_account h3 {
+    color: #a52222;
+    border-bottom: 1px solid #2b2b2b;
+    text-transform: uppercase;
+    text-align: center
+}
+
+.sign_in p {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.form-horizontal .form-group {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+/**
+ * main area
+ */
+
+.mainarea>div>p>img {
+  float: none;
+  margin-right: 10px;
+  border: 3px solid #eee;
+  border-radius: 50%;
+  clear: both;
+  display: block;
+}
+
+
+/**
+ * FOOTER
+ */
+
+#footer {
+    border-bottom: 3px solid #a52222;
+}
+
+#footer .container >div {
+    padding-top: 15px;
+    padding-bottom: 5px;
+    color: #a52222;
+    text-align: center;
+    border-top: 1px solid #a52222;
+    border-bottom: 0px;
+    background: rgba(238, 238, 238, 0.15);
+}
+
+footer ul.nav {
+    margin-right: auto;
+    margin-bottom: auto;
+}
+
+footer .nav li {
+    display: inline-block;
+    padding: 0px 2px;
+    float: none;
+}
+
+footer .nav li a {
+    text-decoration: none;
+    font-size: 18px;
+}
+
+footer .nav-pills > li > a {
+    border-radius: 0px;
+    color: inherit;
+}
+
+footer .nav > li > a:hover,
+footer .nav > li > a:focus {
+    text-decoration: none;
+    background-color: transparent;
+}
+
+.manage-product span {
+    font-weight: bold;
+    font-size: 30px;
+    margin-left: 5px;
+}
+.manage-product a {
+    float:right;
+    margin-right:10px;
+}
+table {
+    width: 99%;
+}
+table #header {
+    background-color: #DDDDDD;
+    font-weight: bold;
+    text-align: center;
+}
+table, tr, td {
+    padding: 20px;
+    text-align: center;
+    margin: 5px;
+}
+form, #add-product ul li { list-style-type:none; }
+form, #add-product ul li, #price { margin-right:30px; }
+#name { margin-right: 22px; }
+#btn-add-product { margin-left:65px; }
+.add-new-product { margin-bottom: 10px; margin-left:30px; }
+
+.style-right { float:right; }
+.style-left { float:left; margin-top: 5px; }
+.title-project { font-size: 20px; font-weight: bold; }
+.custom-bottom { border-width: 1px; border-bottom-width: 1px;
+                 border-bottom-color: #DDDDDD; border-bottom-style: solid; width: 100%;
+               }
+.add-project { float: right; margin-top: 30px; }
+.list-project { margin-top: 50px; width:100.5%; }
+table, thead, tr, th { padding-left:10px; height: 40px; }
+.td-align{ text-align: center; }
+.header-project { background-color: #DDDDDD; }
+
+#header .navbar-nav > li { background: none;}
+.general { margin-top: 30px; }
+.date-create { font-style: italic; }
+.file-pot { margin-right: 15px; background-color: #DDDDDD; }
+
+.select-locale { width: 200px; float: left; margin-left:5px; }
+.edit-translation {background-color: blue;}

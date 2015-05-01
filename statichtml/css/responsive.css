@@ -1,0 +1,16 @@
+@media (min-width: 768px) {
+    #header .navbar-nav > li > a {
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+    .navbar {
+        border-radius: 0px;
+    }    
+    .container > .navbar-header,
+    .container-fluid > .navbar-header,
+    .container > .navbar-collapse,
+    .container-fluid > .navbar-collapse {
+        margin-right: -15px;
+        margin-left: -15px;
+    }
+}
