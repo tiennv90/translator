@@ -429,7 +429,7 @@ public class DocumentController {
 				message.getItems().add("Request does not have authentication or documentStrings is empty");
 			}
 			
-			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);

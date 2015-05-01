@@ -28,7 +28,7 @@ public class Translation extends AbstractTimestampEntity {
 	private Date publishedDate;
 
 	@Column(nullable = false)
-	@Enumerated(EnumType.ORDINAL)
+	@Enumerated(EnumType.STRING)
 	private Status status;
 
 	@Temporal(TemporalType.TIMESTAMP)

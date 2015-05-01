@@ -1,10 +1,36 @@
 package com.flipmind.localizationservice.controllers;
 
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.flipmind.localizationservice.GlobalVariable;
+import com.flipmind.localizationservice.models.Document;
+import com.flipmind.localizationservice.models.DocumentString;
+import com.flipmind.localizationservice.models.Locale;
+import com.flipmind.localizationservice.models.Project;
+import com.flipmind.localizationservice.models.Tenant;
+import com.flipmind.localizationservice.models.Translation;
+import com.flipmind.localizationservice.models.json.JSONMessage;
+import com.flipmind.localizationservice.models.json.JSONTranslation;
+import com.flipmind.localizationservice.repositories.DocumentRepository;
+import com.flipmind.localizationservice.repositories.LocaleRepository;
+import com.flipmind.localizationservice.repositories.TenantRepository;
+import com.flipmind.localizationservice.repositories.TranslationRepository;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
@@ -12,11 +38,25 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import com.wordnik.swagger.models.Response;
 
+import flexjson.JSONSerializer;
+
 @RestController
 @RequestMapping("/api/1.0")
 @Api(value = "Translation", description = "Manage translations")
 public class TranslationController {
+	
+	@Autowired
+	private TranslationRepository translationRepository;
+	
+	@Autowired 
+	private TenantRepository tenantRepository;
+	
+	@Autowired
+	private DocumentRepository documentRepository;
 
+	@Autowired
+	private LocaleRepository localeRepository;
+	
 	@RequestMapping(value = "/projects/{projectslug}/{documentslug}", method = RequestMethod.POST)
 	@ApiResponses(
 			value = {@ApiResponse(code = 404, message = "Something went wrong")
@@ -26,14 +66,96 @@ public class TranslationController {
 			httpMethod = "POST", notes = "Adds a translation to the document", 
 			response = Response.class
 	)		
-	public String addTranslation(
+	public ResponseEntity<String> addTranslation(
 			@ApiParam(value = "Project Slug",  required = true)
 			@PathVariable("projectslug") String projectSlug,
 			
 			@ApiParam(value = "Document Slug",  required = true)
-			@PathVariable("documentslug") String documentSlug) {
-
-		return "";
+			@PathVariable("documentslug") String documentSlug,
+			
+			@RequestBody JSONTranslation jsonTranslation,
+			
+			HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		try {
+		
+		String apiKey = request.getHeader(GlobalVariable.API_KEY);
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+		
+		JSONMessage message = new JSONMessage();
+		message.setMessage("Adds a translation to the document");
+		
+		if (apiKey != null && !apiKey.isEmpty()) {
+			List<Tenant> tenants = tenantRepository.findByApiKey(apiKey);
+			
+			
+			if (tenants != null && !tenants.isEmpty()) {
+				
+				Translation translation = new Translation();
+				
+				//begin document data
+				if (jsonTranslation.getDocument() != null && jsonTranslation.getDocument().getId() > 0) {
+					Document document = documentRepository.findOne(jsonTranslation.getDocument().getId());
+					if (document != null) {
+						translation.setDocument(document);
+					} 
+				}
+				
+				if (translation.getDocument() == null) {
+					Tenant tenant = tenants.get(0);
+					for (Project project : tenant.getProjects()) {
+						
+						if (project.getSlug().equals(projectSlug)) {
+							for (Document document : project.getDocuments()) {
+								
+								if (document.getSlug().equals(documentSlug)) {
+									translation.setDocument(document);
+								}
+								
+							}
+						}
+						
+					}					
+				}
+				//end get document data
+				
+				//begin get locale Data
+				String localeCode = jsonTranslation.getLocale();
+				List<Locale> locales = localeRepository.findByLocaleCode(localeCode);
+				if (locales != null && !locales.isEmpty()) {
+					translation.setLocale(locales.get(0));
+				}
+				//end get locale Data
+				
+				//get status
+				translation.setStatus(jsonTranslation.getStatus());
+				
+				//get active from date
+				translation.setActiveFromDate(new Date(jsonTranslation.getActiveFrom()));
+				
+				boolean isSaveable = false;
+				if (translation.getDocument() != null && translation.getLocale() != null) {
+					isSaveable = true;
+				}
+				
+				if (isSaveable) {
+					translation = translationRepository.save(translation);
+					message.getItems().add("Translation: " + translation.getId() + " was added successfully");
+				}
+			}
+		} else {
+			
+			message.getItems().add("Request does not have authentication or path variables does not exist");
+		}
+		
+		return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK); 
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+		}
+		return null;
 
 	}
 
