@@ -1,7 +1,7 @@
 package com.flipmind.localizationservice.controllers;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -13,8 +13,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.flipmind.localizationservice.GlobalVariable;
 import com.flipmind.localizationservice.models.Project;
 import com.flipmind.localizationservice.models.Tenant;
+import com.flipmind.localizationservice.models.json.JSONMessage;
 import com.flipmind.localizationservice.repositories.ProjectRepository;
 import com.flipmind.localizationservice.repositories.TenantRepository;
 import com.wordnik.swagger.annotations.Api;
@@ -71,10 +72,10 @@ public class ProjectsController {
 				HttpHeaders headers = new HttpHeaders();
 				headers.add("Content-Type", "application/json; charset=utf-8");
 				
-				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").serialize(projects), headers, HttpStatus.OK) ;
+				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class", "tenant").serialize(projects), headers, HttpStatus.OK) ;
 				
 			} else {
-				request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+				request.getRequestDispatcher(GlobalVariable.NO_AUTHENTICATION_PATH).forward(request, response);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -93,11 +94,33 @@ public class ProjectsController {
 			httpMethod = "GET", notes = "Returns the project with the given ID", 
 			response = Response.class
 	)	
-	public String getProject(
+	public ResponseEntity<String> getProject(
 			@ApiParam(value = "Project Slug",  required = true)
-			@PathVariable("projectslug") String projectslug) {
+			@PathVariable("projectslug") String projectslug, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		return "";
+		try {
+			
+			if (projectslug != null && !projectslug.isEmpty()) {
+			
+				List<Project> projects = projectRepository.findBySlug(projectslug);
+				
+				if (projects != null && !projects.isEmpty()) {
+					
+					HttpHeaders headers = new HttpHeaders();
+					headers.add("Content-Type", "application/json; charset=utf-8");
+					
+					return new ResponseEntity<String>(new JSONSerializer().exclude("*.class", "tenant").serialize(projects), headers, HttpStatus.OK) ;
+					
+				} else {
+					request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+		}
+		
+		return null;
 		
 	}
 	
@@ -110,11 +133,51 @@ public class ProjectsController {
 			httpMethod = "DELETE", notes = "Sets the date deleted on the project (if not already deleted)", 
 			response = Response.class
 	)		
-	public String deleteProject(
+	public ResponseEntity<String> deleteProject(
 			@ApiParam(value = "Project Slug",  required = true)
-			@PathVariable("projectslug") String projectslug) {
+			@PathVariable("projectslug") String projectslug, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		return "";
+		try {
+			
+			if (projectslug != null && !projectslug.isEmpty()) {
+			
+				List<Project> projects = projectRepository.findBySlug(projectslug);
+				
+				if (projects != null && !projects.isEmpty()) {
+					
+					JSONMessage message = new JSONMessage();
+					message.setMessage("Sets the date deleted on the project (if not already deleted)");
+					
+					for (Project project : projects) {
+						
+						if (project.getDeletedDate() == null || project.getDeletedDate().toString().isEmpty()) {
+							
+							project.setDeletedDate(new Date());
+							
+							projectRepository.save(project);
+							message.setSuccess(true);
+							message.getItems().add("Project: " + projectslug + " was deleted successfully.");
+							
+						} else {
+							message.getItems().add("Project: " + projectslug + " was deleted by someone.");
+						}
+						
+					}
+					HttpHeaders headers = new HttpHeaders();
+					headers.add("Content-Type", "application/json; charset=utf-8");
+					
+					return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
+					
+				} else {
+					request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+		}
+		
+		return null;
 		
 	}
 	
@@ -128,9 +191,39 @@ public class ProjectsController {
 			httpMethod = "POST", notes = "Accepts a JSON document and creates/updates the Project for the tenant", 
 			response = Response.class
 	)
-	public String updateProject(HttpServletRequest request) {
+	public ResponseEntity<String> updateProject(@RequestBody Project project, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		return "";
+		try {
+			JSONMessage message = new JSONMessage();
+			message.setMessage("Creates/updates project");
+			if (project != null) {
+				
+				Project actualProject = projectRepository.findOne(project.getId());
+				if (actualProject != null) {
+					
+					actualProject.setSlug(project.getSlug());
+					actualProject.setTitle(project.getTitle());
+					
+					projectRepository.save(actualProject);
+				} else {
+					projectRepository.save(project);
+				}
+				
+				if (project.getId() > 0) {
+					message.getItems().add("Project: " + project.getSlug() + " was created successfully");
+				} else {
+					message.getItems().add("Project: " + project.getSlug() + " was updated successfully");
+				}
+				
+				HttpHeaders headers = new HttpHeaders();
+				headers.add("Content-Type", "application/json; charset=utf-8");
+				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+		}
+		return null;
 		
 	}
 }

@@ -1,10 +1,26 @@
 package com.flipmind.localizationservice.controllers;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.flipmind.localizationservice.GlobalVariable;
+import com.flipmind.localizationservice.models.Document;
+import com.flipmind.localizationservice.models.Project;
+import com.flipmind.localizationservice.repositories.ProjectRepository;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
@@ -12,11 +28,15 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import com.wordnik.swagger.models.Response;
 
+import flexjson.JSONSerializer;
+
 @RestController
 @RequestMapping(value="/api/1.0")
 @Api(value = "Document", description = "Mange documents")
 public class DocumentController {
 
+	@Autowired
+	private ProjectRepository projectRepository;
 
 	@RequestMapping(value="/projects/{projectslug}/documents", method=RequestMethod.GET)
 	@ApiOperation(
@@ -28,11 +48,30 @@ public class DocumentController {
 			value = {
 					@ApiResponse(code = 404, message = "Something went wrong")
 	})
-	public String getAllDocuments(
+	public ResponseEntity<String> getAllDocuments(
 		@ApiParam(value = "Project Slug",  required = true)
-		@PathVariable("projectslug") String projectSlug) {
-		
-		return "test controller";
+		@PathVariable("projectslug") String projectSlug, HttpServletResponse response, HttpServletRequest request) throws ServletException, IOException {
+		try {
+			List<Project> projects = projectRepository.findBySlug(projectSlug);
+			
+			List<Document> result = new ArrayList<Document>();
+			
+			if (projects != null && !projects.isEmpty()) {
+				for (Project project : projects) {
+					List<Document> documents = project.getDocuments();
+					result.addAll(documents);
+				}
+			}
+			
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Content-Type", "application/json; charset=utf-8");
+			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class", "project").include("project.project_id").serialize(projects), headers, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+		}
+		return null;
 	}
 	
 	@RequestMapping(value="/projects/{projectslug}/{documentslug}", method=RequestMethod.GET)

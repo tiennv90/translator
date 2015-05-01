@@ -12,5 +12,5 @@ import com.flipmind.localizationservice.models.Tenant;
 public interface ProjectRepository extends CrudRepository<Project, Long> {
 	
 	List<Project> findByTenant(Tenant tenant);
-	
+	List<Project> findBySlug(String slug);
 }

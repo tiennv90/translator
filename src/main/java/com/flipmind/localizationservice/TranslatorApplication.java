@@ -7,6 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
+import com.flipmind.localizationservice.models.Project;
+import com.flipmind.localizationservice.models.Tenant;
 import com.flipmind.localizationservice.repositories.ProjectRepository;
 import com.flipmind.localizationservice.repositories.TenantRepository;
 import com.mangofactory.swagger.models.dto.ApiKey;
@@ -69,13 +71,12 @@ public class TranslatorApplication implements CommandLineRunner {
 //		tenant.setPassword("password");
 //		
 //		tenant = tenantRepository.save(tenant);
-//		
+//
 //		Project p = new Project();
 //		p.setSlug("project1");
 //		p.setTitle("My First Project");
 //		p.setTenant(tenant);
-//		
-//		projectRepository.save(p);
+		
 	}
 	
 	
