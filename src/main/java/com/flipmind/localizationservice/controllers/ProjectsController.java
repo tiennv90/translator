@@ -24,6 +24,7 @@ import com.flipmind.localizationservice.GlobalVariable;
 import com.flipmind.localizationservice.models.Project;
 import com.flipmind.localizationservice.models.Tenant;
 import com.flipmind.localizationservice.models.json.JSONMessage;
+import com.flipmind.localizationservice.models.json.JSONProject;
 import com.flipmind.localizationservice.repositories.ProjectRepository;
 import com.flipmind.localizationservice.repositories.TenantRepository;
 import com.wordnik.swagger.annotations.Api;
@@ -46,7 +47,8 @@ public class ProjectsController {
 	@Autowired
 	private TenantRepository tenantRepository;
 
-	@RequestMapping(value="/projects", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	
+	@RequestMapping(value="/projects", method=RequestMethod.GET)
 	@ResponseBody
 	@ApiResponses(
 			value = {@ApiResponse(code = 404, message = "Something went wrong")
@@ -57,7 +59,7 @@ public class ProjectsController {
 			response = Response.class
 	)
 	
-	public ResponseEntity<String> index(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public ResponseEntity<String> getProjects(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		try {
 			
@@ -183,7 +185,6 @@ public class ProjectsController {
 		
 	}
 	
-	
 	@RequestMapping(value="/projects", method=RequestMethod.POST)
 	@ResponseBody
 	@ApiResponses(
@@ -194,44 +195,63 @@ public class ProjectsController {
 			httpMethod = "POST", notes = "Accepts a JSON document and creates/updates the Project for the tenant", 
 			response = Response.class
 	)
-	public ResponseEntity<String> updateProject(@RequestBody Project project, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public ResponseEntity<String> updateProject(@RequestBody JSONProject project, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		try {
+			String apiKey = request.getHeader(GlobalVariable.API_KEY);
 			JSONMessage message = new JSONMessage();
 			message.setMessage("Creates/updates project");
 			
-			if (project != null) {
+			if (apiKey != null && !apiKey.isEmpty()) {
 				
-				boolean isCreateProject = false;
+				List<Tenant> tenants = tenantRepository.findByApiKey(apiKey);
 				
-				Project actualProject = projectRepository.findOne(project.getId());
-				if (actualProject != null) {
+				if (project != null && tenants != null && !tenants.isEmpty()) {
 					
-					actualProject.setSlug(project.getSlug());
-					actualProject.setTitle(project.getTitle());
+					boolean isCreateProject = false;
 					
-					projectRepository.save(actualProject);
-				} else if (project.getTenant() != null && project.getTenant().getId() > 0){
+					Project actualProject = projectRepository.findOne(project.getId());
 					
-					Tenant tenant = tenantRepository.findOne(project.getTenant().getId());
-					project.setTenant(tenant);
-					projectRepository.save(project);
+					//if project existed then updates project
+					if (actualProject != null) {
+						
+						actualProject.setSlug(project.getSlug());
+						actualProject.setTitle(project.getTitle());
+						
+						projectRepository.save(actualProject);
+						
+					//if project does not exist then create a new project
+					} else if (project.getTenant() != null && project.getTenant().getId() > 0){
+						 
+						actualProject = new Project();
+						Tenant tenant = tenantRepository.findOne(project.getTenant().getId());
+						
+						//if tenant from JSON request does not exist then use tenant from api_key
+						if (tenant == null) {
+							tenant = tenants.get(0);
+						}
+						actualProject.setTenant(tenant);
+						actualProject.setSlug(project.getSlug());
+						actualProject.setTitle(project.getTitle());
+						projectRepository.save(actualProject);
+						
+						isCreateProject = true;
+					}
 					
-					isCreateProject =true;
+					if (isCreateProject) {
+						message.getItems().add("Project: " + project.getSlug() + " was created successfully");
+					} else if (project.getId() > 0) {
+						message.getItems().add("Project: " + project.getSlug() + " was updated successfully");
+					} else {
+						message.getItems().add("Project: " + project.getSlug() + " Can not be created. The tenant ID is missing");
+					}
+					
+					HttpHeaders headers = new HttpHeaders();
+					headers.add("Content-Type", "application/json; charset=utf-8");
+					return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
 				}
-				
-				if (isCreateProject) {
-					message.getItems().add("Project: " + project.getSlug() + " was created successfully");
-				} else if (project.getId() > 0) {
-					message.getItems().add("Project: " + project.getSlug() + " was updated successfully");
-				} else {
-					message.getItems().add("Project: " + project.getSlug() + " Can not be created. The tenant ID is missing");
-				}
-				
-				HttpHeaders headers = new HttpHeaders();
-				headers.add("Content-Type", "application/json; charset=utf-8");
-				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
 			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);

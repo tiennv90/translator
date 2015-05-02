@@ -28,7 +28,9 @@ import com.flipmind.localizationservice.models.Status;
 import com.flipmind.localizationservice.models.Tenant;
 import com.flipmind.localizationservice.models.Translation;
 import com.flipmind.localizationservice.models.json.JSONDocument;
+import com.flipmind.localizationservice.models.json.JSONLocale;
 import com.flipmind.localizationservice.models.json.JSONMessage;
+import com.flipmind.localizationservice.models.json.JSONProject;
 import com.flipmind.localizationservice.repositories.DocumentRepository;
 import com.flipmind.localizationservice.repositories.DocumentStringRepository;
 import com.flipmind.localizationservice.repositories.ProjectRepository;
@@ -87,7 +89,7 @@ public class DocumentController {
 			
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json; charset=utf-8");
-			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class", "project").include("project.project_id").serialize(projects), headers, HttpStatus.OK);
+			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class", "project").include("project.project_id").serialize(result), headers, HttpStatus.OK);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -112,7 +114,10 @@ public class DocumentController {
 			@PathVariable("projectslug") String projectSlug, 
 			
 			@ApiParam(value = "Document Slug",  required = true)
-			@PathVariable("documentslug") String documentSlug, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+			@PathVariable("documentslug") String documentSlug, 
+			
+			HttpServletRequest request, 
+			HttpServletResponse response) throws ServletException, IOException {
 		
 		try {
 			
@@ -129,28 +134,33 @@ public class DocumentController {
 			List<Project> projects = projectRepository.findBySlug(projectSlug);
 			
 			List<JSONDocument> result = new ArrayList<JSONDocument>();
-			
+			List<JSONLocale> noAuthenticationResult = new ArrayList<JSONLocale>();
 			if (projects != null && !projects.isEmpty()) {
-				
 				for (Project project : projects) {
 					
 					for (Document document : project.getDocuments()) {
-						
 						if (document.getSlug().equals(documentSlug)) {
-							
 							JSONDocument jsonDocument = new JSONDocument();
 							
 							if (isAuthenticated == true) {
 								
 								jsonDocument.setId(document.getId());
 								jsonDocument.setSlug(document.getSlug());
-								jsonDocument.setProject(new Project(project.getId()));
+								jsonDocument.setProject(new JSONProject(project.getId()));
 								
 							}
 							for (Translation translation : document.getTranslations()) {
-								if (translation.getStatus() != null && translation.getStatus().equals(Status.PUBLISH)) {
+								if (translation.getStatus() != null && translation.getStatus().equals(Status.PUBLISHED) && translation.getLocale() != null) {
 									
-									jsonDocument.getPublishedLocales().add(translation.getLocale());
+									JSONLocale newLocale = new JSONLocale(translation.getLocale().getLocaleCode(), translation.getLocale().getTitle());
+									
+									if(!jsonDocument.getPublishedLocales().contains(newLocale)) {
+										jsonDocument.getPublishedLocales().add(newLocale);
+									}
+									
+									if (!noAuthenticationResult.contains(newLocale)) {
+										noAuthenticationResult.add(newLocale);
+									}
 									
 								}
 							}
@@ -163,8 +173,10 @@ public class DocumentController {
 			
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json; charset=utf-8");
-			
-			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").serialize(result), headers, HttpStatus.OK) ;
+			if (isAuthenticated) {
+				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(result), headers, HttpStatus.OK) ;
+			}
+			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(noAuthenticationResult), headers, HttpStatus.OK) ; 
 		} catch (Exception e) {
 			e.printStackTrace();
 			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
@@ -208,12 +220,13 @@ public class DocumentController {
 							documentRepository.save(document);
 							message.setSuccess(true);
 							message.getItems().add("Document: " + document.getSlug()  + " was deleted successfully.");
-						} else {
-							message.getItems().add("Document: " + document.getSlug()  + " was deleted by someone.");
 						}
 					}
 				}
 				
+				if (message.isSuccess() == false) {
+					message.getItems().add("Document: " + documentSlug  + " was deleted by someone or the document does not exist");
+				}
 				HttpHeaders headers = new HttpHeaders();
 				headers.add("Content-Type", "application/json; charset=utf-8");
 				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
@@ -245,7 +258,7 @@ public class DocumentController {
 			Document document = documentRepository.findOne(jsonDocument.getId());
 			boolean isSaveable = false;
 			
-			//if document existed update the document base on the Request JSON
+			//if document existed then update the document base on the Request JSON
 			if (document != null) {
 				
 				document.setSlug(jsonDocument.getSlug());
@@ -304,13 +317,9 @@ public class DocumentController {
 				
 				documentRepository.save(document);
 				message.setSuccess(true);
-				if (jsonDocument.getId() > 0) {
-					message.getItems().add("Document " + document.getSlug() + " was updated successfully");
-				} else {
-					message.getItems().add("Document " + document.getSlug() + " was created successfully");
-				}
+				message.getItems().add("Document " + document.getSlug() + " was updated/created successfully");
 			} else {
-				message.getItems().add("Project Slug " + projectSlug + " does not exist. Can't create document Document " + document.getSlug());
+				message.getItems().add("Can't create Document " + document.getSlug());
 			}
 			
 			HttpHeaders headers = new HttpHeaders();
@@ -372,7 +381,7 @@ public class DocumentController {
 	@RequestMapping(value="/projects/{projectslug}/{documentslug}/strings", method=RequestMethod.DELETE)
 	@ResponseBody
 	@ApiOperation(
-			value = "Require credential, deletes those records within this document", 
+			value = "Require credential, deletes  records within document", 
 			httpMethod = "DELETE", 
 			notes = "Accepts a post of ['login.login.attempts', ‘otherkey’] And deletes those records within this document", 
 			response = Response.class
@@ -423,9 +432,12 @@ public class DocumentController {
 						
 					}
 				}
+				if (message.isSuccess() == false) {
+					message.getItems().add("Your input keys does not match or already deleted by someone");
+				}
 				
 			} else {
-				message.getItems().add("Something wen wrong");
+				message.getItems().add("Something went wrong");
 				message.getItems().add("Request does not have authentication or documentStrings is empty");
 			}
 			

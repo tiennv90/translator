@@ -32,7 +32,7 @@ public class DocumentString {
 	private int plurals;
 	
 	@ManyToOne
-	@JoinColumn(name = "document_id", insertable = false, updatable = false, nullable = false)
+	@JoinColumn(name = "document_id")
 	private Document document;
 
 	public long getId() {

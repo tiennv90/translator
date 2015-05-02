@@ -28,10 +28,10 @@ public class Document extends AbstractTimestampEntity {
 	private String title;
 
 	@Column(length = 5000, nullable = false)
-	private String potContent;
+	private String potContent = "";
 	
 	@ManyToOne
-	@JoinColumn(name = "project_id", insertable = false, updatable = false, nullable = false)
+	@JoinColumn(name = "project_id")
 	private Project project;
 	
 	@OneToMany(mappedBy = "document")
