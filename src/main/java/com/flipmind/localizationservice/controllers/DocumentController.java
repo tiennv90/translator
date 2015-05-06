@@ -345,14 +345,16 @@ public class DocumentController {
 			httpMethod = "PUT", notes = "Adds the set of strings that the translator can enter (The template stored against the document)", 
 			response = Response.class
 	)
-	public String addStringAndDeleteNotIncludedContent(
+	public ResponseEntity<String> addStringAndDeleteNotIncludedContent(
 			@ApiParam(value = "Project Slug",  required = true)
 			@PathVariable("projectslug") String projectSlug, 
 			
 			@ApiParam(value = "Document Slug",  required = true)
 			@PathVariable("documentslug") String documentSlug) {
 		
-		return "";
+		
+		
+		return null;
 		
 	}
 	
@@ -367,14 +369,14 @@ public class DocumentController {
 			notes = "creates/updates strings it does not delete strings that are not included in the POST", 
 			response = Response.class
 	)	
-	public String addString(
+	public ResponseEntity<String> addString(
 			@ApiParam(value = "Project Slug",  required = true)
 			@PathVariable("projectslug") String projectSlug, 
 			
 			@ApiParam(value = "Document Slug",  required = true)
 			@PathVariable("documentslug") String documentSlug) {
 		
-		return "";
+		return null;
 		
 	}
 	

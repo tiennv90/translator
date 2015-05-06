@@ -9,6 +9,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.flipmind.localizationservice.GlobalVariable;
 import com.flipmind.localizationservice.models.Document;
 import com.flipmind.localizationservice.models.Locale;
@@ -245,10 +247,9 @@ public class TranslationController {
 								//if none is in the draft status then a new Translation in the Draft status is created with 
 								//the strings copied form the previous Published version.
 								if (isOneDraftTranslation == false) {
-									System.out.println("====isOneDraftTranslation false ===");
+									
 									for (Translation translation : translations) {
 										if (translation.getStatus().equals(Status.PUBLISHED)) {
-											System.out.println("====DEBUG: translation.getStatus().equals(Status.PUBLISHED)");
 											Translation newDraftTranslation = new Translation();
 											newDraftTranslation.setDocument(document);
 											newDraftTranslation.setStatus(Status.DRAFT);
@@ -303,7 +304,9 @@ public class TranslationController {
 		return null;
 	}
 	
-	@RequestMapping(value = "/projects/{projectslug}/{documentslug}/{localeCode}/strings", method = RequestMethod.POST)
+	@RequestMapping(value = "/projects/{projectslug}/{documentslug}/{localeCode}/strings",
+			method = RequestMethod.POST, consumes = {"application/json", "application/x-gettext"})
+	@ResponseBody
 	@ApiResponses(
 			value = {@ApiResponse(code = 404, message = "Something went wrong")
 	})
@@ -314,7 +317,7 @@ public class TranslationController {
 					"returned in a JSON document. Unspecified translated strings left un modified", 
 			response = Response.class
 	)	
-	public String updateRecordsByLocale(
+	public ResponseEntity<String> updateRecordsByLocale(
 			@ApiParam(value = "Project Slug",  required = true)
 			@PathVariable("projectslug") String projectSlug,
 			
@@ -322,9 +325,13 @@ public class TranslationController {
 			@PathVariable("documentslug") String documentSlug,
 			
 			@ApiParam(value = "Locale Code",  required = true)
-			@PathVariable("localeCode") String localeCode) {
-
-		return "";
+			@PathVariable("localeCode") String localeCode,
+			
+			@RequestBody String jsonTranslatorInput) {
+		
+		JSONObject jsonObject = new JSONObject(jsonTranslatorInput);
+		
+		return null;
 
 	}
 	
@@ -337,7 +344,7 @@ public class TranslationController {
 			httpMethod = "GET", notes = "Exports the translated strings to one of our supported formats", 
 			response = Response.class
 	)	
-	public String exportStringByFormatAndLocale(
+	public ResponseEntity<String> exportStringByFormatAndLocale(
 			@ApiParam(value = "Project Slug",  required = true)
 			@PathVariable("projectslug") String projectSlug,
 			
@@ -350,7 +357,7 @@ public class TranslationController {
 			@ApiParam(value = "Locale Code",  required = true)
 			@PathVariable("localeCode") String localeCode) {
 
-		return "";
+		return null;
 
 	}	
 	
