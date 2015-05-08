@@ -5,6 +5,7 @@
 
 	<groupId>com.flipmind.localizationservice</groupId>
 	<artifactId>translator</artifactId>
+    <packaging>war</packaging>
 	<version>1.0.0</version>
 
 	<name>translator</name>
@@ -92,6 +93,13 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>                
 			</plugin>
 		</plugins>
 	</build>
