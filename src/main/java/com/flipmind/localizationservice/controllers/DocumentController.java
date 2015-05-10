@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -387,17 +388,68 @@ public class DocumentController {
 		HttpStatus httpStatus = HttpStatus.OK;
 		System.out.println(jsonInput);
 		try {
-			
-			JSONObject jsonObject = new JSONObject(jsonInput);
-			Set<String> keys = jsonObject.keySet();
-			for (String key : keys) {
-				JSONObject item = (JSONObject) jsonObject.get(key);
-			}
-			
-			if (isPublic != null && isPublic.equals("true")) {
+			List<Project> projects = projectRepository.findBySlug(projectSlug);
+			Document currentDocument = null;
+			if (projects != null && !projects.isEmpty()) {
 				
-			} else {
-				
+				for (Project project : projects) {
+					for (Document document : project.getDocuments()) {
+						if (document.getSlug().equals(documentSlug)) {
+							currentDocument = document;
+							break;
+						}
+					}
+				}
+			
+				if (currentDocument != null) {
+					JSONObject jsonObject = new JSONObject(jsonInput);
+					Set<String> keys = jsonObject.keySet();
+					for (String key : keys) {
+						JSONObject itemInputByTranslator = (JSONObject) jsonObject.get(key);
+						String value = (String) itemInputByTranslator.get("value");
+						boolean is_public = itemInputByTranslator.getBoolean("public");
+						
+						DocumentString documentString = new DocumentString();
+						documentString.setStringKey(key);
+						documentString.setDocument(currentDocument);
+						if (value != null) {
+							documentString.setStringValue(value);
+						}
+						
+						if (is_public == true) {
+							documentString.setPublic(true);
+						}
+						
+						//save first document string value and key
+						documentStringRepository.save(documentString);
+						
+						JSONArray jsonArrayPlurals = itemInputByTranslator.getJSONArray("plurals");
+						if (jsonArrayPlurals != null && jsonArrayPlurals.length() > 0) {
+							for (int i = 0; i < jsonArrayPlurals.length(); i++) {
+								JSONObject jsonPlural = (JSONObject) jsonArrayPlurals.get(i);
+								if (jsonPlural != null) {
+									Set<String> plurakKeys = jsonPlural.keySet();
+									for (String k : plurakKeys) {
+										
+										int plural = Integer.valueOf(k);
+										documentString.setPlurals(plural);
+										documentString.setStringValue(jsonPlural.getString(k));
+										
+										//save plural values with the current key
+										documentStringRepository.save(documentString);
+									}
+								}
+							}
+						}
+					}
+					
+					message.getItems().add("Document Strings was added successfully");
+					if (isPublic != null && isPublic.equals("true")) {
+						
+					} else {
+						
+					}
+				}
 			}
 			
 		} catch (JSONException e) {
