@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -335,7 +339,9 @@ public class DocumentController {
 	}
 		
 	
-	@RequestMapping(value="/projects/{projectslug}/{documentslug}/strings?public=true", method=RequestMethod.PUT)
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="/projects/{projectslug}/{documentslug}/strings*", method=RequestMethod.PUT)
+	@ResponseBody
 	@ApiResponses(
 			value = {
 					@ApiResponse(code = 404, message = "Something went wrong")
@@ -345,16 +351,69 @@ public class DocumentController {
 			httpMethod = "PUT", notes = "Adds the set of strings that the translator can enter (The template stored against the document)", 
 			response = Response.class
 	)
+//	{
+//		   "login.password.error":{
+//		      "value":"Please enter your password",
+//		      "public":true
+//		   },
+//		   "login.login.attempts":{
+//		      "value":"You have made 0 login attempts",
+//		      "public":true,
+//		      "plurals":[
+//		         {
+//		            "1":"You have had one login attempt already"
+//		         },
+//		         {
+//		            "2":"You have had two login attempts"
+//		         },
+//
+//		      ]
+//		   }
+//		}
 	public ResponseEntity<String> addStringAndDeleteNotIncludedContent(
 			@ApiParam(value = "Project Slug",  required = true)
 			@PathVariable("projectslug") String projectSlug, 
 			
 			@ApiParam(value = "Document Slug",  required = true)
-			@PathVariable("documentslug") String documentSlug) {
+			@PathVariable("documentslug") String documentSlug,
+			
+			HttpServletRequest request,
+			HttpServletResponse response,
+			
+			@RequestParam("public") String isPublic,
+			@RequestBody String jsonInput ) throws ServletException, IOException {
 		
+		JSONMessage message = new JSONMessage();
+		HttpStatus httpStatus = HttpStatus.OK;
+		System.out.println(jsonInput);
+		try {
+			
+			JSONObject jsonObject = new JSONObject(jsonInput);
+			Set<String> keys = jsonObject.keySet();
+			for (String key : keys) {
+				JSONObject item = (JSONObject) jsonObject.get(key);
+			}
+			
+			if (isPublic != null && isPublic.equals("true")) {
+				
+			} else {
+				
+			}
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+			message.getItems().add("Incorrect JSON format");
+			httpStatus = HttpStatus.BAD_REQUEST;
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+		}
+		message.setMessage("Adds the set of strings that the translator can enter");
 		
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
 		
-		return null;
+		return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, httpStatus);
 		
 	}
 	
@@ -374,7 +433,12 @@ public class DocumentController {
 			@PathVariable("projectslug") String projectSlug, 
 			
 			@ApiParam(value = "Document Slug",  required = true)
-			@PathVariable("documentslug") String documentSlug) {
+			@PathVariable("documentslug") String documentSlug,
+			
+			@RequestBody String jsonTranslatorInput) {
+		
+		JSONObject jsonObject = new JSONObject(jsonTranslatorInput);
+		
 		
 		return null;
 		
