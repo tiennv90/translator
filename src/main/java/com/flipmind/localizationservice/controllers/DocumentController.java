@@ -81,21 +81,37 @@ public class DocumentController {
 		@ApiParam(value = "Project Slug",  required = true)
 		@PathVariable("projectslug") String projectSlug, HttpServletResponse response, HttpServletRequest request) throws ServletException, IOException {
 		try {
-			List<Project> projects = projectRepository.findBySlug(projectSlug);
 			
-			List<Document> result = new ArrayList<Document>();
+			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
 			
-			if (projects != null && !projects.isEmpty()) {
-				for (Project project : projects) {
-					List<Document> documents = project.getDocuments();
-					result.addAll(documents);
-				}
+			boolean isAuthenticated = false;
+			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
 			}
 			
-			HttpHeaders headers = new HttpHeaders();
-			headers.add("Content-Type", "application/json; charset=utf-8");
-			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class", "project").include("project.project_id").serialize(result), headers, HttpStatus.OK);
+			if (isAuthenticated) {
+				List<Project> projects = projectRepository.findBySlug(projectSlug);
+				
+				List<Document> result = new ArrayList<Document>();
+				
+				if (projects != null && !projects.isEmpty()) {
+					for (Project project : projects) {
+						List<Document> documents = project.getDocuments();
+						result.addAll(documents);
+					}
+				}
 			
+				
+				HttpHeaders headers = new HttpHeaders();
+				headers.add("Content-Type", "application/json; charset=utf-8");
+				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class", "project").include("project.project_id").serialize(result), headers, HttpStatus.OK);
+			} else {
+				request.getRequestDispatcher(GlobalVariable.NO_AUTHENTICATION_PATH).forward(request, response);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
@@ -127,6 +143,9 @@ public class DocumentController {
 		try {
 			
 			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
 			
 			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
 			
@@ -209,32 +228,50 @@ public class DocumentController {
 			@PathVariable("documentslug") String documentSlug, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		try {
-			List<Project> projects = projectRepository.findBySlug(projectSlug);
 			
-			if (projects != null && !projects.isEmpty()) {
+			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
+			
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
+			
+			boolean isAuthenticated = false;
+			
+			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
+			}
+			
+			if (isAuthenticated) {
+				List<Project> projects = projectRepository.findBySlug(projectSlug);
 				
-				JSONMessage message = new JSONMessage();
-				message.setMessage("Sets the date deleted on the document (if not already deleted)");
-				
-				for (Project project : projects) {
-					for (Document document : project.getDocuments()) {
-						if (document.getSlug().equals(documentSlug) && 
-								(document.getDeletedDate() == null || document.getDeletedDate().toString().isEmpty())) {
-							document.setDeletedDate(new Date());
-							
-							documentRepository.save(document);
-							message.setSuccess(true);
-							message.getItems().add("Document: " + document.getSlug()  + " was deleted successfully.");
+				if (projects != null && !projects.isEmpty()) {
+					
+					JSONMessage message = new JSONMessage();
+					message.setMessage("Sets the date deleted on the document (if not already deleted)");
+					
+					for (Project project : projects) {
+						for (Document document : project.getDocuments()) {
+							if (document.getSlug().equals(documentSlug) && 
+									(document.getDeletedDate() == null || document.getDeletedDate().toString().isEmpty())) {
+								document.setDeletedDate(new Date());
+								
+								documentRepository.save(document);
+								message.setSuccess(true);
+								message.getItems().add("Document: " + document.getSlug()  + " was deleted successfully.");
+							}
 						}
 					}
+					
+					if (message.isSuccess() == false) {
+						message.getItems().add("Document: " + documentSlug  + " was deleted by someone or the document does not exist");
+					}
+					HttpHeaders headers = new HttpHeaders();
+					headers.add("Content-Type", "application/json; charset=utf-8");
+					return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
 				}
-				
-				if (message.isSuccess() == false) {
-					message.getItems().add("Document: " + documentSlug  + " was deleted by someone or the document does not exist");
-				}
-				HttpHeaders headers = new HttpHeaders();
-				headers.add("Content-Type", "application/json; charset=utf-8");
-				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
+			} else {
+				request.getRequestDispatcher(GlobalVariable.NO_AUTHENTICATION_PATH).forward(request, response);
 			}
 		} catch (Exception e) {
 			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
@@ -260,42 +297,52 @@ public class DocumentController {
 			@PathVariable("projectslug") String projectSlug, @RequestBody JSONDocument jsonDocument, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		try {	
-			Document document = documentRepository.findOne(jsonDocument.getId());
-			boolean isSaveable = false;
 			
-			//if document existed then update the document base on the Request JSON
-			if (document != null) {
+			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
+			
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
+			
+			boolean isAuthenticated = false;
+			
+			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
+			}
+			
+			if (isAuthenticated) {
+				Document document = documentRepository.findOne(jsonDocument.getId());
+				boolean isSaveable = false;
 				
-				document.setSlug(jsonDocument.getSlug());
-				document.setTitle(jsonDocument.getTitle());
-				
-				isSaveable = true;
-				
-			//if document not exist create a new document base on the JSON	
-			} else {
-				
-				document = new Document();
-				Project project = null;
-				
-				//if project id exited get project and assign the project for the new document
-				if (jsonDocument.getProject() != null && jsonDocument.getProject().getId() > 0) {
+				//if document existed then update the document base on the Request JSON
+				if (document != null) {
 					
-					project = projectRepository.findOne(jsonDocument.getProject().getId());
-					if (project != null) {
-						document.setProject(project);
-						isSaveable = true;
+					document.setSlug(jsonDocument.getSlug());
+					document.setTitle(jsonDocument.getTitle());
+					
+					isSaveable = true;
+					
+				//if document not exist create a new document base on the JSON	
+				} else {
+					
+					document = new Document();
+					Project project = null;
+					
+					//if project id exited get project and assign the project for the new document
+					if (jsonDocument.getProject() != null && jsonDocument.getProject().getId() > 0) {
+						
+						project = projectRepository.findOne(jsonDocument.getProject().getId());
+						if (project != null) {
+							document.setProject(project);
+							isSaveable = true;
+						}
+						
 					}
 					
-				}
-				
-				//if project does not exist get project base on api_key and project slug
-				if (document.getProject() == null) {
-					String apiKey = request.getHeader(GlobalVariable.API_KEY);
-					
-					if (apiKey != null && !apiKey.isEmpty()) {
-						
-						List<Tenant> tenants = tenantRepository.findByApiKey(apiKey);
-						
+					//if project does not exist get project base on api_key and project slug
+					if (document.getProject() == null) {
+							
 						if (tenants != null && tenants.isEmpty()) {
 							Tenant tenant = tenants.get(0);
 							for (Project p : tenant.getProjects()) {
@@ -307,30 +354,31 @@ public class DocumentController {
 								}
 							}
 						}
-						
-					}				
+							
+					}
+					
+					document.setSlug(jsonDocument.getSlug());
+					document.setTitle(jsonDocument.getTitle());
 				}
 				
-				document.setSlug(jsonDocument.getSlug());
-				document.setTitle(jsonDocument.getTitle());
-			}
-			
-			JSONMessage message = new JSONMessage();
-			message.setMessage("Creates/updates the document for the tenant");
-			
-			if (isSaveable) {
+				JSONMessage message = new JSONMessage();
+				message.setMessage("Creates/updates the document for the tenant");
 				
-				documentRepository.save(document);
-				message.setSuccess(true);
-				message.getItems().add("Document " + document.getSlug() + " was updated/created successfully");
+				if (isSaveable) {
+					
+					documentRepository.save(document);
+					message.setSuccess(true);
+					message.getItems().add("Document " + document.getSlug() + " was updated/created successfully");
+				} else {
+					message.getItems().add("Can't create Document " + document.getSlug());
+				}
+				
+				HttpHeaders headers = new HttpHeaders();
+				headers.add("Content-Type", "application/json; charset=utf-8");
+				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
 			} else {
-				message.getItems().add("Can't create Document " + document.getSlug());
+				request.getRequestDispatcher(GlobalVariable.NO_AUTHENTICATION_PATH).forward(request, response);
 			}
-			
-			HttpHeaders headers = new HttpHeaders();
-			headers.add("Content-Type", "application/json; charset=utf-8");
-			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
@@ -518,6 +566,17 @@ public class DocumentController {
 		
 		try {
 			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
+			
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
+			
+			boolean isAuthenticated = false;
+			
+			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
+			}
 			
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json; charset=utf-8");
@@ -525,9 +584,7 @@ public class DocumentController {
 			JSONMessage message = new JSONMessage();
 			message.setMessage("Deletes records within a specified document");
 			
-			if (apiKey != null && !apiKey.isEmpty() && documentStrings != null && !documentStrings.isEmpty()) {
-				
-				List<Tenant> tenants = tenantRepository.findByApiKey(apiKey);
+			if (isAuthenticated && documentStrings != null && !documentStrings.isEmpty()) {
 				
 				if (tenants != null && !tenants.isEmpty()) {
 					Tenant tenant = tenants.get(0);

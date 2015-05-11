@@ -89,6 +89,17 @@ public class TranslationController {
 		try {
 		
 			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
+			
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
+			
+			boolean isAuthenticated = false;
+			
+			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
+			}
 			
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json; charset=utf-8");
@@ -96,9 +107,7 @@ public class TranslationController {
 			JSONMessage message = new JSONMessage();
 			message.setMessage("Adds a translation to the document");
 			
-			if (apiKey != null && !apiKey.isEmpty()) {
-				List<Tenant> tenants = tenantRepository.findByApiKey(apiKey);
-				
+			if (isAuthenticated) {
 				
 				if (tenants != null && !tenants.isEmpty()) {
 					
@@ -162,12 +171,10 @@ public class TranslationController {
 						message.getItems().add("Translation: " + translation.getId() + " was added successfully");
 					}
 				}
+				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK); 
 			} else {
-				
-				message.getItems().add("Request does not have authentication or path variables does not exist");
+				request.getRequestDispatcher(GlobalVariable.NO_AUTHENTICATION_PATH).forward(request, response);
 			}
-			
-			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK); 
 		} catch (Exception e) {
 			e.printStackTrace();
 			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
@@ -201,6 +208,17 @@ public class TranslationController {
 
 		try {
 			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
+			
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
+			
+			boolean isAuthenticated = false;
+			
+			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
+			}
 			
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json; charset=utf-8");
@@ -208,9 +226,7 @@ public class TranslationController {
 			JSONMessage message = new JSONMessage();
 			message.setMessage("Deletes records within the translatedstring table");
 			
-			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
-			
-			if (tenants != null && !tenants.isEmpty()) {
+			if (isAuthenticated) {
 				
 				//define a variable to check if there's no Translation in draft state
 				boolean isOneDraftTranslation = false;
@@ -290,11 +306,11 @@ public class TranslationController {
 				if (message.isSuccess() == false && isOneDraftTranslation == true) {
 					message.getItems().add("Translated strings was not deleted, please recheck path variables");
 				}
+				
+				return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, httpStatus);
 			} else {
-				message.getItems().add("Request does not have authentication");
-				httpStatus = HttpStatus.FORBIDDEN;
+				request.getRequestDispatcher(GlobalVariable.NO_AUTHENTICATION_PATH).forward(request, response);
 			}
-			return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, httpStatus);
 		} catch (Exception e) {
 			e.printStackTrace();
 			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
