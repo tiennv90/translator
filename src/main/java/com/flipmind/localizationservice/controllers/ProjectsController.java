@@ -63,10 +63,17 @@ public class ProjectsController {
 		try {
 			
 			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
 			
 			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
-			
+			boolean isAuthenticated = false;
 			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
+			}
+			
+			if (isAuthenticated) {
 				
 				List<Project> projects = projectRepository.findByTenant(tenants.get(0));
 			
@@ -102,20 +109,35 @@ public class ProjectsController {
 		
 		try {
 			
-			if (projectslug != null && !projectslug.isEmpty()) {
+			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
 			
-				List<Project> projects = projectRepository.findBySlug(projectslug);
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
+			boolean isAuthenticated = false;
+			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
+			}
+			
+			if (isAuthenticated) {
+				if (projectslug != null && !projectslug.isEmpty()) {
 				
-				if (projects != null && !projects.isEmpty()) {
+					List<Project> projects = projectRepository.findBySlug(projectslug);
 					
-					HttpHeaders headers = new HttpHeaders();
-					headers.add("Content-Type", "application/json; charset=utf-8");
-					
-					return new ResponseEntity<String>(new JSONSerializer().exclude("*.class", "tenant").serialize(projects), headers, HttpStatus.OK) ;
-					
-				} else {
-					request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+					if (projects != null && !projects.isEmpty()) {
+						
+						HttpHeaders headers = new HttpHeaders();
+						headers.add("Content-Type", "application/json; charset=utf-8");
+						
+						return new ResponseEntity<String>(new JSONSerializer().exclude("*.class", "tenant").serialize(projects), headers, HttpStatus.OK) ;
+						
+					} else {
+						request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
+					}
 				}
+			} else {
+				request.getRequestDispatcher(GlobalVariable.NO_AUTHENTICATION_PATH).forward(request, response);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -142,38 +164,53 @@ public class ProjectsController {
 		
 		try {
 			
-			if (projectslug != null && !projectslug.isEmpty()) {
+			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
 			
-				List<Project> projects = projectRepository.findBySlug(projectslug);
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
+			boolean isAuthenticated = false;
+			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
+			}
+			
+			if (isAuthenticated) {
+				if (projectslug != null && !projectslug.isEmpty()) {
 				
-				if (projects != null && !projects.isEmpty()) {
+					List<Project> projects = projectRepository.findBySlug(projectslug);
 					
-					JSONMessage message = new JSONMessage();
-					message.setMessage("Sets the date deleted on the project (if not already deleted)");
-					
-					for (Project project : projects) {
+					if (projects != null && !projects.isEmpty()) {
 						
-						if (project.getDeletedDate() == null || project.getDeletedDate().toString().isEmpty()) {
+						JSONMessage message = new JSONMessage();
+						message.setMessage("Sets the date deleted on the project (if not already deleted)");
+						
+						for (Project project : projects) {
 							
-							project.setDeletedDate(new Date());
+							if (project.getDeletedDate() == null || project.getDeletedDate().toString().isEmpty()) {
+								
+								project.setDeletedDate(new Date());
+								
+								projectRepository.save(project);
+								message.setSuccess(true);
+								message.getItems().add("Project: " + projectslug + " was deleted successfully.");
+								
+							} else {
+								message.getItems().add("Project: " + projectslug + " was deleted by someone.");
+							}
 							
-							projectRepository.save(project);
-							message.setSuccess(true);
-							message.getItems().add("Project: " + projectslug + " was deleted successfully.");
-							
-						} else {
-							message.getItems().add("Project: " + projectslug + " was deleted by someone.");
 						}
+						HttpHeaders headers = new HttpHeaders();
+						headers.add("Content-Type", "application/json; charset=utf-8");
 						
+						return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
+						
+					} else {
+						request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
 					}
-					HttpHeaders headers = new HttpHeaders();
-					headers.add("Content-Type", "application/json; charset=utf-8");
-					
-					return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
-					
-				} else {
-					request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
-				}
+				} 
+			} else {
+				request.getRequestDispatcher(GlobalVariable.NO_AUTHENTICATION_PATH).forward(request, response);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -198,12 +235,19 @@ public class ProjectsController {
 		
 		try {
 			String apiKey = request.getHeader(GlobalVariable.API_KEY);
+			if (apiKey == null || apiKey.isEmpty()) {
+				apiKey = request.getParameter(GlobalVariable.API_KEY);
+			}
+			
+			List<Tenant> tenants =  tenantRepository.findByApiKey(apiKey);
+			boolean isAuthenticated = false;
+			if (tenants != null && !tenants.isEmpty()) {
+				isAuthenticated = true;
+			}
 			JSONMessage message = new JSONMessage();
 			message.setMessage("Creates/updates project");
 			
-			if (apiKey != null && !apiKey.isEmpty()) {
-				
-				List<Tenant> tenants = tenantRepository.findByApiKey(apiKey);
+			if (isAuthenticated) {
 				
 				if (project != null && tenants != null && !tenants.isEmpty()) {
 					
@@ -249,8 +293,9 @@ public class ProjectsController {
 					headers.add("Content-Type", "application/json; charset=utf-8");
 					return new ResponseEntity<String>(new JSONSerializer().exclude("*.class").deepSerialize(message), headers, HttpStatus.OK) ;
 				}
+			} else {
+				request.getRequestDispatcher(GlobalVariable.NO_AUTHENTICATION_PATH).forward(request, response);
 			}
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 			request.getRequestDispatcher(GlobalVariable.ERROR_PATH).forward(request, response);
